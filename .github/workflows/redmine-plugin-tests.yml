@@ -1,5 +1,8 @@
 name: redmine-plugin-tests
 
+permissions:
+  contents: read
+
 on:
   push:
   pull_request:
