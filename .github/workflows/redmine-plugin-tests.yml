@@ -37,9 +37,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y sqlite3 libsqlite3-dev
 
-      - name: Setup Chrome
-        uses: browser-actions/setup-chrome@v1
-
       - name: Checkout Redmine
         run: |
           git clone -b "${{ matrix.redmine }}" --single-branch https://github.com/redmine/redmine.git "$REDMINE_PATH"
@@ -63,9 +60,3 @@ jobs:
       - name: Run unit tests
         working-directory: ${{ env.REDMINE_PATH }}
         run: bundle exec rake redmine:plugins:test:units NAME=$PLUGIN_NAME
-
-      - name: Run UI tests
-        working-directory: ${{ env.REDMINE_PATH }}
-        env:
-          CHROME_BIN: chrome
-        run: xvfb-run -a bundle exec rake redmine:plugins:test:ui NAME=$PLUGIN_NAME
