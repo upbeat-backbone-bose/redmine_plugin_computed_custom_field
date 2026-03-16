@@ -71,12 +71,26 @@ jobs:
         with:
           ruby-version: ${{ steps.ruby.outputs.version }}
 
+      - name: Install compatible bundler
+        working-directory: ${{ env.REDMINE_PATH }}
+        run: |
+          case "${{ matrix.redmine }}" in
+            2.5-stable|2.6-stable|3.0-stable|3.1-stable|3.2-stable|3.3-stable|3.4-stable)
+              BUNDLER_VERSION="1.17.3"
+              ;;
+            *)
+              BUNDLER_VERSION="2.3.27"
+              ;;
+          esac
+          gem install bundler -v "$BUNDLER_VERSION"
+          echo "BUNDLER_VERSION=$BUNDLER_VERSION" >> "$GITHUB_ENV"
+
       - name: Bundle install
         working-directory: ${{ env.REDMINE_PATH }}
         run: |
           bundle config set path vendor/bundle
           bundle config set without 'development'
-          bundle install
+          bundle _${BUNDLER_VERSION}_ install
 
       - name: Prepare database
         working-directory: ${{ env.REDMINE_PATH }}
