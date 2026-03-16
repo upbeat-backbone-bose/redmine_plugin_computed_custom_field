@@ -1,0 +1,71 @@
+name: redmine-plugin-tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - redmine: 6.0-stable
+            ruby: '3.1'
+          - redmine: 6.0-stable
+            ruby: '3.2'
+          - redmine: 6.1-stable
+            ruby: '3.2'
+          - redmine: 6.1-stable
+            ruby: '3.3'
+
+    env:
+      PLUGIN_NAME: computed_custom_field
+      REDMINE_PATH: ${{ github.workspace }}/redmine
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sqlite3 libsqlite3-dev
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Checkout Redmine
+        run: |
+          git clone -b "${{ matrix.redmine }}" --single-branch https://github.com/redmine/redmine.git "$REDMINE_PATH"
+          ln -s "$GITHUB_WORKSPACE" "$REDMINE_PATH/plugins/$PLUGIN_NAME"
+          cp config/database.yml.travis "$REDMINE_PATH/config/database.yml"
+
+      - name: Bundle install
+        working-directory: ${{ env.REDMINE_PATH }}
+        run: |
+          bundle config set path vendor/bundle
+          bundle config set without 'development'
+          bundle install
+
+      - name: Prepare database
+        working-directory: ${{ env.REDMINE_PATH }}
+        run: |
+          bundle exec rake db:create
+          bundle exec rake db:migrate
+          bundle exec rake redmine:plugins:migrate
+
+      - name: Run unit tests
+        working-directory: ${{ env.REDMINE_PATH }}
+        run: bundle exec rake redmine:plugins:test:units NAME=$PLUGIN_NAME
+
+      - name: Run UI tests
+        working-directory: ${{ env.REDMINE_PATH }}
+        env:
+          CHROME_BIN: chrome
+        run: xvfb-run -a bundle exec rake redmine:plugins:test:ui NAME=$PLUGIN_NAME
