@@ -12,7 +12,10 @@ module ComputedCustomField
     private
 
     def custom_field_instance(record)
-      eval(record.type.sub('CustomField', '')).new
+      klass_name = record.type.to_s.sub('CustomField', '')
+      klass = klass_name.safe_constantize
+      raise NameError, "Unknown custom field type: #{klass_name}" unless klass
+      klass.new
     end
 
     def grouped_custom_fields
@@ -28,7 +31,8 @@ module ComputedCustomField
         grouped_cfs = CustomField.all.group_by(&:id)
         cf_ids = record.formula.scan(/cfs\[(\d+)\]/).flatten.map(&:to_i)
         cfs = cf_ids.each_with_object({}) do |cf_id, hash|
-          hash[cf_id] = grouped_cfs[cf_id].first.cast_value '1'
+          cf = grouped_cfs[cf_id]&.first
+          hash[cf_id] = cf ? cf.cast_value('1') : nil
         end
         eval record.formula
       end

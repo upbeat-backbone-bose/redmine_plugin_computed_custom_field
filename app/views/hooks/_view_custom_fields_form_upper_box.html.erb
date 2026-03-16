@@ -10,10 +10,13 @@
 
   <script type="text/javascript">
       (function() {
-          $("#available_cfs").dblclick(function() {
-              var formula = $("#custom_field_formula");
-              $(this).find("option:selected").each(function() {
-                  formula.val(formula.val() + 'cfs[' + $(this).val() + ']');
+          var select = document.getElementById('available_cfs');
+          if (!select) return;
+          select.addEventListener('dblclick', function() {
+              var formula = document.getElementById('custom_field_formula');
+              if (!formula) return;
+              Array.prototype.forEach.call(select.selectedOptions, function(option) {
+                  formula.value = formula.value + 'cfs[' + option.value + ']';
               });
           });
       }())

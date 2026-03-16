@@ -8,15 +8,14 @@ Redmine::Plugin.register :computed_custom_field do
 end
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/lib"
-require 'computed_custom_field'
-#require 'computed_custom_field/custom_field_patch'
-require 'computed_custom_field/custom_fields_helper_patch'
-#require 'computed_custom_field/model_patch'
-#require 'computed_custom_field/issue_patch'
-require 'computed_custom_field/hooks'
 
-RedmineApp::Application.configure do
-  config.after_initialize do
-    ComputedCustomField.patch_models
-  end
+require_dependency 'computed_custom_field'
+require_dependency 'computed_custom_field/custom_field_patch'
+require_dependency 'computed_custom_field/custom_fields_helper_patch'
+require_dependency 'computed_custom_field/issue_patch'
+require_dependency 'computed_custom_field/model_patch'
+require_dependency 'computed_custom_field/hooks'
+
+Rails.application.config.to_prepare do
+  ComputedCustomField.patch_models
 end
