@@ -24,6 +24,7 @@ jobs:
     env:
       PLUGIN_NAME: computed_custom_field
       REDMINE_PATH: ${{ github.workspace }}/redmine
+      RAILS_ENV: test
 
     steps:
       - uses: actions/checkout@v4
