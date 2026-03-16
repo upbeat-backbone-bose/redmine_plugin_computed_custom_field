@@ -38,7 +38,8 @@ unless defined?(ComputedCustomField::ModelPatch)
                           .group_by { |cfv| cfv.custom_field.id }
         cf_ids = formula.scan(/cfs\[(\d+)\]/).flatten.map(&:to_i)
         cf_ids.each_with_object({}) do |cf_id, hash|
-          cfv = @grouped_cfvs[cf_id]&.first
+          group = @grouped_cfvs[cf_id]
+          cfv = group ? group.first : nil
           hash[cf_id] = cfv ? cfv.custom_field.cast_value(cfv.value) : nil
         end
       end

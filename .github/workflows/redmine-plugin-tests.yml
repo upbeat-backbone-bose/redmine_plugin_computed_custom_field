@@ -11,15 +11,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - redmine: 6.0-stable
-            ruby: '3.1'
-          - redmine: 6.0-stable
-            ruby: '3.2'
-          - redmine: 6.1-stable
-            ruby: '3.2'
-          - redmine: 6.1-stable
-            ruby: '3.3'
+        redmine:
+          - 2.5-stable
+          - 2.6-stable
+          - 3.0-stable
+          - 3.1-stable
+          - 3.2-stable
+          - 3.3-stable
+          - 3.4-stable
+          - 4.0-stable
+          - 5.0-stable
+          - 6.0-stable
+          - 6.1-stable
 
     env:
       PLUGIN_NAME: computed_custom_field
@@ -28,10 +31,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
 
       - name: Install system dependencies
         run: |
@@ -43,6 +42,34 @@ jobs:
           git clone -b "${{ matrix.redmine }}" --single-branch https://github.com/redmine/redmine.git "$REDMINE_PATH"
           ln -s "$GITHUB_WORKSPACE" "$REDMINE_PATH/plugins/$PLUGIN_NAME"
           cp config/database.yml.travis "$REDMINE_PATH/config/database.yml"
+
+      - name: Resolve Ruby version
+        id: ruby
+        working-directory: ${{ env.REDMINE_PATH }}
+        run: |
+          if [ -f .ruby-version ]; then
+            version="$(cat .ruby-version)"
+          else
+            version="$(grep -E "^ruby ['\\\"]" Gemfile | head -n 1 | sed -E "s/^ruby ['\\\"]([^'\\\"]+)['\\\"].*/\\1/")"
+          fi
+          if [ -z "$version" ]; then
+            case "${{ matrix.redmine }}" in
+              2.5-stable|2.6-stable) version="2.3.8" ;;
+              3.0-stable|3.1-stable|3.2-stable) version="2.2.10" ;;
+              3.3-stable) version="2.3.8" ;;
+              3.4-stable) version="2.4.10" ;;
+              4.0-stable) version="2.6.10" ;;
+              5.0-stable) version="2.7.8" ;;
+              6.0-stable) version="3.1.6" ;;
+              6.1-stable) version="3.2.5" ;;
+              *) echo "No Ruby version mapping for ${{ matrix.redmine }}"; exit 1 ;;
+            esac
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ steps.ruby.outputs.version }}
 
       - name: Bundle install
         working-directory: ${{ env.REDMINE_PATH }}

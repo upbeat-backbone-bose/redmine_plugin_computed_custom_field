@@ -31,7 +31,8 @@ module ComputedCustomField
         grouped_cfs = CustomField.all.group_by(&:id)
         cf_ids = record.formula.scan(/cfs\[(\d+)\]/).flatten.map(&:to_i)
         cfs = cf_ids.each_with_object({}) do |cf_id, hash|
-          cf = grouped_cfs[cf_id]&.first
+          group = grouped_cfs[cf_id]
+          cf = group ? group.first : nil
           hash[cf_id] = cf ? cf.cast_value('1') : nil
         end
         eval record.formula

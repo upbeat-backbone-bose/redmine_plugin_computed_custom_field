@@ -57,7 +57,7 @@ rake redmine:plugins:migrate
 
 ### Compatibility
 
-The plugins supports the following Redmine versions: 6.1.x, 6.0.x, 4.0.x, 3.4.x, 3.3.x, 3.2.x, 3.1.x, 3.0.x, 2.6.x, 2.5.x.
+The plugins supports the following Redmine versions: 6.1.x, 6.0.x, 5.0.x, 4.0.x, 3.4.x, 3.3.x, 3.2.x, 3.1.x, 3.0.x, 2.6.x, 2.5.x.
 
 ### Examples:
 ```ruby
