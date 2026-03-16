@@ -1,16 +1,21 @@
 module ComputedCustomField
-  module CustomFieldPatch
-    extend ActiveSupport::Concern
+end unless defined?(ComputedCustomField)
 
-    included do
-      before_validation -> { self.formula ||= '' }, if: :is_computed?
-      validates_with FormulaValidator, if: :is_computed?
-      safe_attributes 'is_computed', 'formula' if CustomField.respond_to? 'safe_attributes'
-    end
+unless defined?(ComputedCustomField::CustomFieldPatch)
+  module ComputedCustomField
+    module CustomFieldPatch
+      extend ActiveSupport::Concern
 
-    def is_computed=(arg)
-      # cannot change is_computed of a saved custom field
-      super if new_record?
+      included do
+        before_validation -> { self.formula ||= '' }, if: :is_computed?
+        validates_with FormulaValidator, if: :is_computed?
+        safe_attributes 'is_computed', 'formula' if CustomField.respond_to? 'safe_attributes'
+      end
+
+      def is_computed=(arg)
+        # cannot change is_computed of a saved custom field
+        super if new_record?
+      end
     end
   end
 end
